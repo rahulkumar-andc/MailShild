@@ -30,3 +30,10 @@ insta_session.json
 .antigravity/
 .antigravityrules
 .cursorrules
+
+# Node.js
+node_modules/
+whatsapp_bridge/node_modules/
+whatsapp_bridge/.wwebjs_auth/
+whatsapp_bridge/monitored_groups.json
+

@@ -133,7 +133,7 @@ LOGGING = {
 
 # Service logic settings
 DRY_RUN = os.getenv('DRY_RUN', 'True').lower() in ('true', '1', 't')
-ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY', '')
+GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
 NTFY_TOPIC = os.getenv('NTFY_TOPIC', 'mailshield_ai_alerts_random_1337')
 
 GMAIL_USER = os.getenv('GMAIL_USER', '')
@@ -141,3 +141,6 @@ GMAIL_APP_PASSWORD = os.getenv('GMAIL_APP_PASSWORD', '')
 
 INSTA_USER = os.getenv('INSTA_USER', '')
 INSTA_PASSWORD = os.getenv('INSTA_PASSWORD', '')
+
+WA_BRIDGE_SECRET = os.getenv('WA_BRIDGE_SECRET', 'mailshield-wa-secret-2026')
+

@@ -22,6 +22,94 @@
             --tag-college: #6366f1;
             --tag-collab: #8b5cf6;
             --tag-normal: #64748b;
+            --tag-academic: #0ea5e9;
+            --tag-deadline: #f59e0b;
+            --tag-class-update: #06b6d4;
+            --tag-favourite: #ec4899;
+            --tag-casual: #64748b;
+            --tag-whatsapp: #25d366;
+            --tag-whatsapp: #25d366;
+        }
+
+        /* Chat Widget CSS */
+        .chat-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            background: var(--card-bg);
+            border: 1px solid var(--accent-brand);
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .chat-header {
+            background: var(--accent-brand);
+            color: white;
+            padding: 12px 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-body {
+            display: flex;
+            flex-direction: column;
+            height: 350px;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 12px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .chat-msg {
+            padding: 8px 12px;
+            border-radius: 8px;
+            max-width: 85%;
+            font-size: 0.9rem;
+            word-wrap: break-word;
+        }
+        .user-msg {
+            background: var(--accent-brand);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0;
+        }
+        .ai-msg {
+            background: var(--border-color);
+            color: var(--text-main);
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        .chat-input-area {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid var(--border-color);
+            gap: 8px;
+        }
+        .chat-input-area input {
+            flex: 1;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-color);
+            color: white;
+            outline: none;
+        }
+        .chat-input-area button {
+            background: var(--accent-brand);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
         }
 
         * { box-sizing: border-box; }
@@ -144,6 +232,11 @@
         .badge-threat { background: var(--tag-threat); box-shadow: 0 0 10px rgba(220, 38, 38, 0.3); }
         .badge-college { background: var(--tag-college); }
         .badge-collab { background: var(--tag-collab); }
+        .badge-academic { background: var(--tag-academic); }
+        .badge-deadline { background: var(--tag-deadline); color: #000; }
+        .badge-class-update { background: var(--tag-class-update); }
+        .badge-favourite { background: var(--tag-favourite); }
+        .badge-casual { background: var(--tag-casual); }
         .badge-normal { background: var(--tag-normal); }
 
         .sender {
@@ -232,11 +325,127 @@
             opacity: 0.4;
             cursor: default;
         }
+
+        .fav-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .fav-form {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .fav-input {
+            background: rgba(0,0,0,0.2);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            min-width: 200px;
+        }
+
+        .fav-btn {
+            background: var(--accent-brand);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .fav-btn:hover {
+            opacity: 0.9;
+        }
+
+        .fav-list {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .fav-item {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--border-color);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .fav-remove {
+            color: var(--tag-threat);
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-flex;
+            width: 18px;
+            height: 18px;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(220, 38, 38, 0.1);
+        }
+
+        .fav-remove:hover {
+            background: rgba(220, 38, 38, 0.3);
+        }
+
+        .messages-alert {
+            background: var(--tag-important);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
     <h1>MailShield AI Dashboard</h1>
     <p class="subtitle">AI-powered communication intelligence • Logged in as <strong>{{ user.username }}</strong> · <a href="/admin/logout/" style="color: var(--accent-brand);">Logout</a></p>
+
+    {% if messages %}
+        {% for msg in messages %}
+            <div class="messages-alert">{{ msg }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="fav-panel">
+        <form action="{% url 'add-favourite' %}" method="post" class="fav-form">
+            {% csrf_token %}
+            <input type="text" name="username" class="fav-input" placeholder="Enter Insta/Gmail sender..." required>
+            <input type="hidden" name="source" value="instagram">
+            <button type="submit" class="fav-btn">+ Add Favourite</button>
+        </form>
+        <div class="fav-list">
+            {% for fav in favourite_users %}
+            <div class="fav-item">
+                <span>{{ fav.username }}</span>
+                <form action="{% url 'remove-favourite' fav.id %}" method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="fav-remove" title="Remove">&times;</button>
+                </form>
+            </div>
+            {% empty %}
+            <span style="color: var(--text-muted); font-size: 0.85rem;">No favourites added yet.</span>
+            {% endfor %}
+        </div>
+    </div>
 
     <div class="filter-bar">
         <a href="?" class="filter-btn {% if not selected_category and not phishing %}active{% endif %}">All</a>
@@ -254,14 +463,33 @@
         <a href="?category=COLLAB" class="filter-btn {% if selected_category == 'COLLAB' %}active{% endif %}">🤝 Collab</a>
         <a href="?category=FAN" class="filter-btn {% if selected_category == 'FAN' %}active{% endif %}">💬 Fan</a>
         <a href="?category=NORMAL" class="filter-btn {% if selected_category == 'NORMAL' %}active{% endif %}">📨 Normal</a>
+
+        <!-- WhatsApp Filters -->
+        <a href="?category=ACADEMIC" class="filter-btn {% if selected_category == 'ACADEMIC' %}active{% endif %}">📚 Academic</a>
+        <a href="?category=DEADLINE" class="filter-btn {% if selected_category == 'DEADLINE' %}active{% endif %}">⏰ Deadline</a>
+        <a href="?category=CLASS_UPDATE" class="filter-btn {% if selected_category == 'CLASS_UPDATE' %}active{% endif %}">🏫 Class Update</a>
+        <a href="?category=FAVOURITE" class="filter-btn {% if selected_category == 'FAVOURITE' %}active{% endif %}">⭐ Favourite</a>
     </div>
 
+    {% if reminders %}
+    <div class="fav-panel" style="flex-direction: column; align-items: stretch;">
+        <h3 style="margin: 0 0 0.75rem 0; font-size: 1.1rem;">⏰ Upcoming Reminders</h3>
+        {% for r in reminders %}
+        <div class="fav-item" style="justify-content: space-between; width: 100%; padding: 0.5rem 1rem;">
+            <span><strong>{{ r.title }}</strong> — {{ r.description|truncatewords:15 }}</span>
+            <span style="color: var(--tag-deadline); font-weight: 600; white-space: nowrap;">{{ r.remind_at|date:'d M Y, h:i A' }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <div class="message-grid">
-        {% for msg in messages %}
+        {% for msg in page_obj %}
         <div class="card">
             <div class="card-header">
                 <span class="source-icon">
                     {% if msg.source == 'gmail' %}📧 GMAIL
+                    {% elif msg.source == 'whatsapp' %}💬 WHATSAPP
                     {% else %}📱 INSTAGRAM{% endif %}
                 </span>
                 <span class="badge
@@ -271,6 +499,10 @@
                     {% elif msg.category == 'THREAT' %}badge-threat
                     {% elif msg.category == 'COLLEGE' %}badge-college
                     {% elif msg.category == 'COLLAB' %}badge-collab
+                    {% elif msg.category == 'ACADEMIC' %}badge-academic
+                    {% elif msg.category == 'DEADLINE' %}badge-deadline
+                    {% elif msg.category == 'CLASS_UPDATE' %}badge-class-update
+                    {% elif msg.category == 'FAVOURITE' %}badge-favourite
                     {% else %}badge-normal{% endif %}">
                     {{ msg.category }}
                 </span>
@@ -322,5 +554,79 @@
         {% endif %}
     </div>
     {% endif %}
+
+    <!-- Chat Widget HTML -->
+    <div id="chat-widget" class="chat-widget">
+        <div class="chat-header" onclick="toggleChat()">
+            🤖 AI Assistant
+            <span id="chat-toggle-icon">▲</span>
+        </div>
+        <div class="chat-body" id="chat-body" style="display: none;">
+            <div class="chat-messages" id="chat-messages">
+                <div class="chat-msg ai-msg">Hi! Ask me anything about your recent emails, Instagram DMs, or WhatsApp messages.</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Ask something..." onkeypress="handleChatEnter(event)">
+                <button onclick="sendChatMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Widget script -->
+    <script>
+        function toggleChat() {
+            const body = document.getElementById('chat-body');
+            const icon = document.getElementById('chat-toggle-icon');
+            if (body.style.display === 'none') {
+                body.style.display = 'flex';
+                icon.innerText = '▼';
+            } else {
+                body.style.display = 'none';
+                icon.innerText = '▲';
+            }
+        }
+
+        function handleChatEnter(e) {
+            if (e.key === 'Enter') {
+                sendChatMessage();
+            }
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            input.value = '';
+            appendMsg('user-msg', msg);
+            appendMsg('ai-msg', '...', 'ai-loading');
+
+            const res = await fetch('/api/chat/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg })
+            });
+
+            const data = await res.json();
+            document.getElementById('ai-loading').remove();
+            
+            if (data.reply) {
+                appendMsg('ai-msg', data.reply);
+            } else {
+                appendMsg('ai-msg', 'Error: ' + data.error);
+            }
+        }
+
+        function appendMsg(className, text, id='') {
+            const div = document.createElement('div');
+            div.className = 'chat-msg ' + className;
+            div.innerText = text;
+            if (id) div.id = id;
+            const container = document.getElementById('chat-messages');
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+    </script>
+
 </body>
 </html>

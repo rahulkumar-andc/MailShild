@@ -1,5 +1,6 @@
 import os
 from celery import Celery
+from celery.schedules import crontab
 
 # Set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
@@ -24,4 +25,13 @@ app.conf.beat_schedule = {
         'task': 'analyzer.tasks.scan_instagram',
         'schedule': 300.0,
     },
+    'check-reminders-every-60s': {
+        'task': 'analyzer.tasks.check_reminders',
+        'schedule': 60.0,
+    },
+    'clean-old-spam-daily': {
+        'task': 'analyzer.tasks.clean_old_spam',
+        'schedule': crontab(hour=0, minute=0),
+    },
 }
+
