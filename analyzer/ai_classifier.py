@@ -1,6 +1,10 @@
 import json
+import logging
 import anthropic
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
 
 def classify_message(source, sender, subject, body):
     """
@@ -8,11 +12,11 @@ def classify_message(source, sender, subject, body):
     Returns a dict with classification details.
     """
     if not settings.ANTHROPIC_API_KEY:
-        print("Anthropic API key not configured. Skipping classification.")
+        logger.warning("Anthropic API key not configured. Skipping classification.")
         return get_default_classification()
 
     client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
-    
+
     if source == "gmail":
         categories = "IMPORTANT, SPAM, PHISHING, COLLEGE, PROMOTIONAL, NEWSLETTER, NORMAL"
     else:
@@ -55,12 +59,12 @@ Respond ONLY with a valid JSON object of this structure:
             ]
         )
         result_text = response.content[0].text
-        
+
         # safely parse JSON out of potential surrounding text
         start_idx = result_text.find('{')
         end_idx = result_text.rindex('}') + 1
         json_str = result_text[start_idx:end_idx]
-        
+
         data = json.loads(json_str)
         return {
             "category": data.get("category", "NORMAL"),
@@ -69,10 +73,11 @@ Respond ONLY with a valid JSON object of this structure:
             "reason": data.get("reason", ""),
             "is_phishing": bool(data.get("is_phishing", False))
         }
-        
+
     except Exception as e:
-        print(f"Classification failed: {e}")
-        return get_default_classification()
+        logger.error("Classification failed: %s", e)
+        raise  # FIX 11: Re-raise so Celery's autoretry can catch it
+
 
 def get_default_classification():
     return {
