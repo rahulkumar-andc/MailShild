@@ -72,8 +72,10 @@ def fetch_unseen_emails():
                     "subject": subject,
                     "body": body,
                     "received_at": received_at,
-                    # We keep them UNSEEN in Gmail unless explicit read marks are required.
                 })
+        
+        # Mark email as SEEN
+        mail.store(email_id, '+FLAGS', '\\Seen')
 
     mail.logout()
     return fetched_emails

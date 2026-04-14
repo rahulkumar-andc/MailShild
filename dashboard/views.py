@@ -10,8 +10,13 @@ def index(request):
     if category:
         messages = messages.filter(category=category)
         
+    phishing = request.GET.get('phishing')
+    if phishing:
+        messages = messages.filter(is_phishing=True)
+        
     context = {
         'messages': messages,
-        'selected_category': category
+        'selected_category': category,
+        'phishing': phishing
     }
     return render(request, 'dashboard/index.html', context)

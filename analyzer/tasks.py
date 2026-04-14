@@ -52,7 +52,7 @@ def process_message(msg_data):
     )
 
     should_notify = False
-    if classification["category"] in ["IMPORTANT", "PHISHING"] or classification["spam_score"] > 75:
+    if classification["category"] in ["IMPORTANT", "PHISHING", "THREAT"] or classification["spam_score"] > 75:
         should_notify = True
 
     # Save to database

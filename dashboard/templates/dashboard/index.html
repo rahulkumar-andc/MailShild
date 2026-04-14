@@ -166,11 +166,21 @@
 <body>
     <h1>MailShield AI Dashboard</h1>
 
-    <div class="filter-bar">
-        <a href="?" class="filter-btn {% if not selected_category %}active{% endif %}">All</a>
+    <div class="filter-bar" style="flex-wrap: wrap;">
+        <a href="?" class="filter-btn {% if not selected_category and not phishing %}active{% endif %}">All</a>
         <a href="?category=IMPORTANT" class="filter-btn {% if selected_category == 'IMPORTANT' %}active{% endif %}">Important</a>
-        <a href="?category=PHISHING" class="filter-btn {% if selected_category == 'PHISHING' %}active{% endif %}">Phishing</a>
+        <a href="?phishing=1" class="filter-btn {% if phishing %}active{% endif %}" style="border-color: var(--tag-phishing);">🎣 Phishing Only</a>
         <a href="?category=SPAM" class="filter-btn {% if selected_category == 'SPAM' %}active{% endif %}">Spam</a>
+        
+        <!-- Gmail Filters -->
+        <a href="?category=COLLEGE" class="filter-btn {% if selected_category == 'COLLEGE' %}active{% endif %}">College</a>
+        <a href="?category=PROMOTIONAL" class="filter-btn {% if selected_category == 'PROMOTIONAL' %}active{% endif %}">Promotional</a>
+        <a href="?category=NEWSLETTER" class="filter-btn {% if selected_category == 'NEWSLETTER' %}active{% endif %}">Newsletter</a>
+
+        <!-- Instagram Filters -->
+        <a href="?category=COLLAB" class="filter-btn {% if selected_category == 'COLLAB' %}active{% endif %}">Collab</a>
+        <a href="?category=FAN" class="filter-btn {% if selected_category == 'FAN' %}active{% endif %}">Fan</a>
+        <a href="?category=THREAT" class="filter-btn {% if selected_category == 'THREAT' %}active{% endif %}">Threat</a>
     </div>
 
     <div class="message-grid">

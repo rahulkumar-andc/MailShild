@@ -23,5 +23,12 @@ class Message(models.Model):
     
     received_at = models.DateTimeField()
 
+    class Meta:
+        indexes = [
+            models.Index(fields=['-received_at']),
+            models.Index(fields=['source']),
+            models.Index(fields=['category']),
+        ]
+
     def __str__(self):
         return f"[{self.source.upper()}] {self.sender} - {self.category}"

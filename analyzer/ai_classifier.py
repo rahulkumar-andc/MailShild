@@ -18,6 +18,8 @@ def classify_message(source, sender, subject, body):
     else:
         categories = "IMPORTANT, SPAM, COLLAB, FAN, THREAT, NORMAL"
 
+    body = body[:3000]
+
     prompt = f"""You are a security and organization AI assistant for a college student, bug bounty hunter, and security researcher.
 Your task is to classify an incoming {source} message.
 
@@ -45,8 +47,8 @@ Respond ONLY with a valid JSON object of this structure:
 
     try:
         response = client.messages.create(
-            model="claude-3-sonnet-20240229",
-            max_tokens=300,
+            model="claude-sonnet-4-20250514",
+            max_tokens=1024,
             temperature=0.0,
             messages=[
                 {"role": "user", "content": prompt}
