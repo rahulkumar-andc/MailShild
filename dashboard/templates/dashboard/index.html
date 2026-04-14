@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MailShield AI Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            
+            --accent-brand: #3b82f6;
+            --tag-phishing: #ef4444;
+            --tag-spam: #f97316;
+            --tag-important: #10b981;
+            --tag-normal: #64748b;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.5;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(to right, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .filter-bar {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .filter-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--accent-brand);
+            border-color: var(--accent-brand);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .message-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.75rem;
+        }
+
+        .source-icon {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        .badge-phishing { background: var(--tag-phishing); box-shadow: 0 0 10px rgba(239, 68, 68, 0.4); }
+        .badge-spam { background: var(--tag-spam); }
+        .badge-important { background: var(--tag-important); }
+        .badge-normal { background: var(--tag-normal); }
+
+        .sender {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 1.1rem;
+        }
+
+        .subject {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .reason {
+            font-size: 0.85rem;
+            background: rgba(0,0,0,0.2);
+            padding: 0.75rem;
+            border-radius: 6px;
+            border-left: 3px solid var(--accent-brand);
+            font-style: italic;
+            margin-top: auto;
+        }
+
+        .meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 1rem;
+            padding-top: 0.5rem;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            grid-column: 1 / -1;
+            padding: 4rem;
+            background: var(--card-bg);
+            border-radius: 12px;
+            border: 1px dashed var(--border-color);
+        }
+    </style>
+</head>
+<body>
+    <h1>MailShield AI Dashboard</h1>
+
+    <div class="filter-bar">
+        <a href="?" class="filter-btn {% if not selected_category %}active{% endif %}">All</a>
+        <a href="?category=IMPORTANT" class="filter-btn {% if selected_category == 'IMPORTANT' %}active{% endif %}">Important</a>
+        <a href="?category=PHISHING" class="filter-btn {% if selected_category == 'PHISHING' %}active{% endif %}">Phishing</a>
+        <a href="?category=SPAM" class="filter-btn {% if selected_category == 'SPAM' %}active{% endif %}">Spam</a>
+    </div>
+
+    <div class="message-grid">
+        {% for msg in messages %}
+        <div class="card">
+            <div class="card-header">
+                <span class="source-icon">
+                    {% if msg.source == 'gmail' %}📧 GMAIL
+                    {% else %}📱 INSTAGRAM{% endif %}
+                </span>
+                <span class="badge 
+                    {% if msg.is_phishing %}badge-phishing
+                    {% elif msg.category == 'IMPORTANT' %}badge-important
+                    {% elif msg.category == 'SPAM' %}badge-spam
+                    {% else %}badge-normal{% endif %}">
+                    {{ msg.category }}
+                </span>
+            </div>
+            
+            <div class="sender">{{ msg.sender }}</div>
+            {% if msg.subject %}
+            <div class="subject">{{ msg.subject }}</div>
+            {% endif %}
+
+            <div class="reason">
+                <strong>AI Conclusion:</strong> {{ msg.reason|default:"No explanation provided." }}
+                <br>
+                <small style="color:var(--text-muted); margin-top: 4px; display:block;">Spam Score: {{ msg.spam_score }}/100 | Priority: {{ msg.priority }}</small>
+            </div>
+
+            <div class="meta">
+                <span>{{ msg.received_at|date:"M d, Y H:i" }}</span>
+                <span>{% if msg.notified %}🔔 Notified{% endif %}</span>
+            </div>
+        </div>
+        {% empty %}
+        <div class="empty-state">
+            <h3>No messages found</h3>
+            <p>Wait for celery tasks to run or check your API keys.</p>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
