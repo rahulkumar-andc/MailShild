@@ -33,5 +33,14 @@ app.conf.beat_schedule = {
         'task': 'analyzer.tasks.clean_old_spam',
         'schedule': crontab(hour=0, minute=0),
     },
+    'send-daily-briefing': {
+        'task': 'analyzer.tasks.send_daily_briefing',
+        'schedule': crontab(hour=8, minute=0),
+    },
+    # 🎂 Birthday Auto-Reply — scans every 2 min for wishes
+    'auto-reply-birthday-wishes': {
+        'task': 'analyzer.tasks.auto_reply_birthday_wishes',
+        'schedule': 120.0,
+    },
 }
 

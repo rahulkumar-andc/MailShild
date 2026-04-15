@@ -70,6 +70,13 @@ def main():
     try:
         cl.login(settings.INSTA_USER, settings.INSTA_PASSWORD)
         cl.dump_settings(SESSION_FILE)
+        
+        # CLEAR CHALLENGE FLAG ON SUCCESS
+        from analyzer.insta_fetcher import INSTA_CHALLENGE_FLAG
+        if os.path.exists(INSTA_CHALLENGE_FLAG):
+            os.remove(INSTA_CHALLENGE_FLAG)
+            print("✨ Security challenge flag cleared.")
+
         print(f"\n✅ Login SUCCESSFUL! Session saved to {SESSION_FILE}")
         print("   Ab Celery worker is session ko reuse karega — dobara login nahi karna padega!")
 

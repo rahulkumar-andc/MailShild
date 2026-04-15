@@ -8,6 +8,7 @@ from .gmail_fetcher import fetch_unseen_emails
 from .insta_fetcher import fetch_unseen_dms
 from .ai_classifier import classify_message
 from .notifier import send_notification
+from .url_scanner import scan_message_urls
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +29,13 @@ def scan_gmail(self):
 @shared_task(bind=True, max_retries=0)
 def scan_instagram(self):
     """Fetch and process unseen Instagram DMs."""
+    from .insta_fetcher import INSTA_CHALLENGE_FLAG
+    import os
+
+    if os.path.exists(INSTA_CHALLENGE_FLAG):
+        logger.warning("Instagram scan skipped: Security challenge active. Please verify manually.")
+        return
+
     if settings.DRY_RUN:
         logger.info("[DRY RUN] Skipping Instagram scan.")
         return
@@ -104,6 +112,8 @@ def process_message(msg_data):
         is_phishing=classification["is_phishing"],
         should_notify=should_notify,
         notified=False,
+        ai_reply_draft=classification.get("ai_reply_draft"),
+        sender_external_id=msg_data.get("sender_id"),  # Save platform-specific ID
         received_at=msg_data["received_at"] or timezone.now()
     )
 
@@ -120,10 +130,33 @@ def process_message(msg_data):
         msg_obj.save()
         logger.info("Notification sent for %s message from %s", msg_obj.source, msg_obj.sender)
 
-    # Create reminder if AI extracted one (WhatsApp messages)
+    # Create reminder if AI extracted one (all sources)
     reminder_data = classification.get("reminder")
     if reminder_data and isinstance(reminder_data, dict):
         _create_reminder(msg_obj, reminder_data)
+
+    # Scan URLs in message body
+    try:
+        scan_result = scan_message_urls(msg_obj)
+        if scan_result['dangerous'] > 0:
+            # Auto-escalate if dangerous URLs found and not already phishing
+            if not msg_obj.is_phishing:
+                msg_obj.is_phishing = True
+                msg_obj.should_notify = True
+                msg_obj.save(update_fields=['is_phishing', 'should_notify'])
+                if not msg_obj.notified:
+                    send_notification(
+                        source=msg_obj.source,
+                        sender=msg_obj.sender,
+                        reason=f"⚠️ Dangerous URL detected: {scan_result['urls'][0]['flags']}",
+                        category="PHISHING",
+                        is_phishing=True,
+                    )
+                    msg_obj.notified = True
+                    msg_obj.save(update_fields=['notified'])
+            logger.warning("Dangerous URLs found in message %s: %d flagged", msg_obj.message_id, scan_result['dangerous'])
+    except Exception as e:
+        logger.error("URL scanning failed for message %s: %s", msg_obj.message_id, e)
 
 
 def _create_reminder(msg_obj, reminder_data):
@@ -153,6 +186,7 @@ def _create_reminder(msg_obj, reminder_data):
             message=msg_obj,
             title=title,
             description=description,
+            source=msg_obj.source,
             remind_at=remind_at,
             is_sent=False,
         )
@@ -174,7 +208,7 @@ def check_reminders(self):
     for reminder in due_reminders:
         try:
             send_notification(
-                source="whatsapp",
+                source=reminder.source if reminder.source else "system",
                 sender=f"⏰ Reminder",
                 reason=f"{reminder.title}\n{reminder.description}",
                 category="REMINDER",
@@ -201,3 +235,49 @@ def clean_old_spam(self):
         logger.info(f"Auto-deleted {deleted_count} SPAM messages older than 2 days.")
     else:
         logger.info("No old SPAM messages found to delete.")
+
+@shared_task(bind=True, max_retries=0)
+def send_daily_briefing(self):
+    """
+    Runs daily via Celery Beat.
+    Generates a briefing string via AI and pushes it via ntfy.
+    """
+    from .briefing_agent import generate_daily_briefing
+    briefing_text = generate_daily_briefing()
+    
+    try:
+        send_notification(
+            source="system",
+            sender="MailShield Assistant",
+            reason=briefing_text,
+            category="BRIEFING",
+            is_phishing=False,
+        )
+        logger.info("Daily briefing sent.")
+    except Exception as e:
+        logger.error("Failed to send daily briefing notification: %s", e)
+
+
+@shared_task(bind=True, max_retries=0)
+def auto_reply_birthday_wishes(self):
+    """
+    🎂 Birthday Auto-Reply Agent
+    Scans recent messages for birthday wishes and auto-replies with
+    AI-generated personalized thank-you messages.
+    Only activates on the birthday date (April 16).
+    """
+    from .insta_fetcher import INSTA_CHALLENGE_FLAG
+    import os
+
+    if os.path.exists(INSTA_CHALLENGE_FLAG):
+        logger.warning("Birthday auto-reply paused for Instagram: Security challenge active.")
+        # We don't return entirely because it might still need to process WhatsApp wishes
+        # but the birthday_agent will handle the source-specific failure.
+        pass
+
+    from .birthday_agent import process_birthday_wishes
+    try:
+        stats = process_birthday_wishes()
+        logger.info("Birthday auto-reply stats: %s", stats)
+    except Exception as e:
+        logger.error("Birthday auto-reply failed: %s", e)

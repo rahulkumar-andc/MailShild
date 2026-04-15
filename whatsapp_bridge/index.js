@@ -14,10 +14,15 @@
  */
 
 const { Client, LocalAuth } = require('whatsapp-web.js');
+const express = require('express');
 const qrcode = require('qrcode-terminal');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
+
+const BRIDGE_SEND_PORT = process.env.WA_BRIDGE_SEND_PORT || 3001;
+let lastMessageSentAt = 0;
+const SEND_COOLDOWN_MS = 60000; // 60 seconds rate limit for safety
 
 // ──────────────────── Config ────────────────────
 const DJANGO_URL = process.env.DJANGO_URL || 'http://localhost:8000/api/wa-message/';
@@ -171,7 +176,51 @@ client.on('auth_failure', (msg) => {
     console.log('   Please delete .wwebjs_auth/ and re-scan QR code.');
 });
 
-// ──────────────────── Start ────────────────────
+// ──────────────────── Outbound API Server ────────────────────
+const app = express();
+app.use(express.json());
+
+app.post('/send', async (req, res) => {
+    const { secret, target, message } = req.body;
+
+    if (secret !== BRIDGE_SECRET) {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    if (!target || !message) {
+        return res.status(400).json({ error: 'Missing target or message' });
+    }
+
+    const now = Date.now();
+    if (now - lastMessageSentAt < SEND_COOLDOWN_MS) {
+        const waitSec = Math.ceil((SEND_COOLDOWN_MS - (now - lastMessageSentAt)) / 1000);
+        return res.status(429).json({ error: `Rate limit. Wait ${waitSec}s.` });
+    }
+
+    try {
+        let jid = target;
+        if (!target.includes('@')) {
+            const foundId = Object.keys(monitoredGroups).find(id => monitoredGroups[id].toLowerCase() === target.toLowerCase());
+            if (foundId) jid = foundId;
+            else return res.status(404).json({ error: `Group ${target} not found.` });
+        }
+
+        const safetyMessage = `${message}\n\n[Sent via MailShield AI Assistant]`;
+        await client.sendMessage(jid, safetyMessage);
+        
+        lastMessageSentAt = Date.now();
+        console.log(`📤 Outbound to [${target}]: sent.`);
+        res.json({ success: true, jid: jid });
+    } catch (err) {
+        console.error('❌ Send error:', err);
+        res.status(500).json({ error: 'Failed', details: err.message });
+    }
+});
+
+app.listen(BRIDGE_SEND_PORT, '127.0.0.1', () => {
+    console.log(`📡 Outbound API listening on http://127.0.0.1:${BRIDGE_SEND_PORT}`);
+});
+
+// ──────────────────── Start WhatsApp ────────────────────
 console.log('🚀 MailShield WhatsApp Bridge starting...');
-console.log('   Initializing WhatsApp Web connection...\n');
 client.initialize();

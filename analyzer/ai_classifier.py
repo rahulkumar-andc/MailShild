@@ -25,8 +25,17 @@ def classify_message(source, sender, subject, body):
     else:
         categories = "IMPORTANT, SPAM, COLLAB, FAN, THREAT, NORMAL"
 
-    # Truncate to 1500 chars to avoid hitting the 6000 TPM limit on Groq free tier
-    body = body[:1500]
+    # Token Optimization: Strip HTML tags and reduce truncation
+    import re
+    # Remove CSS/Style blocks and Script blocks
+    body = re.sub(r'<(style|script)[^>]*>.*?</\1>', '', body, flags=re.DOTALL | re.IGNORECASE)
+    # Remove all other HTML tags
+    body = re.sub(r'<[^>]+>', ' ', body)
+    # Normalize whitespace
+    body = re.sub(r'\s+', ' ', body).strip()
+    
+    # Truncate to 800 chars (approx 200 tokens) to save speed/cost on Groq
+    body = body[:800]
 
     if source == "whatsapp":
         prompt = f"""You are a smart AI assistant for a college student.
@@ -83,15 +92,24 @@ Also determine:
 2. priority: 'low', 'normal', 'high', or 'urgent'.
 3. reason: A brief 1-sentence reason for your classification.
 4. is_phishing: true or false.
+5. reminder: If the message mentions a specific deadline, due date, event, meeting,
+   or time-bound action, extract a reminder object. Otherwise set to null.
 
-Respond ONLY with a valid JSON object of this structure:
-{{
-    "category": "CATEGORY_NAME",
-    "spam_score": 0,
-    "priority": "low",
-    "reason": "Because...",
-    "is_phishing": false
-}}
+ Respond ONLY with a valid JSON object of this structure:
+ {{
+     "category": "CATEGORY_NAME",
+     "spam_score": 0,
+     "priority": "low",
+     "reason": "Because...",
+     "is_phishing": false,
+     "ai_reply_draft": "A polite, short, and helpful Hinglish response to this message (or null if irrelevant)",
+     "reminder": {{
+         "title": "Short title for the reminder",
+         "description": "Full details of what to do",
+         "deadline": "YYYY-MM-DDTHH:MM:SS or null if no specific time"
+     }}
+ }}
+ If no reminder or draft needed, set them to null.
 """
 
     try:
@@ -118,10 +136,11 @@ Respond ONLY with a valid JSON object of this structure:
             "priority": data.get("priority", "normal"),
             "reason": data.get("reason", ""),
             "is_phishing": bool(data.get("is_phishing", False)),
+            "ai_reply_draft": data.get("ai_reply_draft", None),
         }
 
-        # Extract reminder for WhatsApp messages
-        if source == "whatsapp" and data.get("reminder"):
+        # Extract reminder from any source that provides one
+        if data.get("reminder"):
             result["reminder"] = data["reminder"]
 
         return result

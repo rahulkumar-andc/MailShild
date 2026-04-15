@@ -134,6 +134,7 @@ LOGGING = {
 # Service logic settings
 DRY_RUN = os.getenv('DRY_RUN', 'True').lower() in ('true', '1', 't')
 GROQ_API_KEY = os.getenv('GROQ_API_KEY', '')
+GROQ_API_KEY_CHAT = os.getenv('GROQ_API_KEY_CHAT', '') or GROQ_API_KEY  # Fallback to primary
 NTFY_TOPIC = os.getenv('NTFY_TOPIC', 'mailshield_ai_alerts_random_1337')
 
 GMAIL_USER = os.getenv('GMAIL_USER', '')
